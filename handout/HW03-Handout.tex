@@ -1,0 +1,167 @@
+\documentclass[11pt]{article}
+
+\usepackage{fullpage}
+\parindent=0in
+\input{testpoints}
+
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+\usepackage{inconsolata}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{color}
+
+\newcommand{\argmax}{\mathop{\arg\max}}
+\newcommand{\deriv}[1]{\frac{\partial}{\partial {#1}} }
+\newcommand{\dsep}{\mbox{dsep}}
+\newcommand{\Pa}{\mathop{Pa}}
+\newcommand{\ND}{\mbox{ND}}
+\newcommand{\De}{\mbox{De}}
+\newcommand{\Ch}{\mbox{Ch}}
+\newcommand{\graphG}{{\mathcal{G}}}
+\newcommand{\graphH}{{\mathcal{H}}}
+\newcommand{\setA}{\mathcal{A}}
+\newcommand{\setB}{\mathcal{B}}
+\newcommand{\setS}{\mathcal{S}}
+\newcommand{\setV}{\mathcal{V}}
+\DeclareMathOperator*{\union}{\bigcup}
+\DeclareMathOperator*{\intersection}{\bigcap}
+\DeclareMathOperator*{\Val}{Val}
+\newcommand{\mbf}[1]{{\mathbf{#1}}}
+\newcommand{\eq}{\!=\!}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\sign}{sign}
+
+
+\begin{document}
+
+{\centering
+  \rule{6.3in}{2pt}
+  \vspace{1em}
+  {\Large
+    CS689: Machine Learning - Fall 2023\\
+    Homework 3\\
+  }
+  \vspace{1em}
+  Assigned: - Monday, Oct 30, 2023\\
+  \vspace{0.1em}
+  \rule{6.3in}{1.5pt}
+}
+\vspace{1pc}
+
+
+
+\textbf{Getting Started:} This assignment consists of two parts. Part 1 consists of written problems, derivations, and implementation warmup questions, while Part 2 consists of implementation and experimentation problems. You should first complete Part 1. You should then start on the implementation and experimentation problems in Part 2 of the assignment. The implementation and experimentation problems must be coded in Python 3.8+. Download the assignment archive from Moodle and unzip the file. The data files for this assignment are in the \verb|data| directory.\\
+
+\textbf{Submission and Due Dates:} You may use at most one late day for Part 1 and at most two late days for Part 2. Work submitted after you have used all available late days does not count for credit. You must submit a PDF document to Gradescope with your solutions to Part 1. You must submit a PDF document to Gradescope containing the results of your experiments for Part 2. You must also submit your code files to Gradescope for Part 2. Questions where your code must run on Gradescope to count for credit are indicated. You are strongly encouraged to typeset your PDF solutions using LaTeX. The source of this assignment is provided to help you get started. You may also submit a PDF containing scans of \textit{clear} hand-written solutions. Work that us illegible will not count for credit.\\
+
+\textbf{Bonus Questions:} This assignment includes one bonus question worth 5 bonus points. Answers to bonus questions must be turned in with Part 2. Bonus points are added to your total homework grade, up to a cap of 400 total homework points.\\ 
+
+\textbf{Academic Honesty Reminder:} Homework assignments are individual work. Being in possession of another student's solutions, code, code output, or plots/graphs for any reason is considered cheating. Sharing your solutions, code, code output, or plots/graphs with other students for any reason is considered cheating. Copying solutions from external sources (books, web pages, etc.) is considered cheating. Use of AI tools (e.g., ChatGPT, etc.) in developing answers to both written questions and coding questions is considered cheating. Collaboration indistinguishable from copying is considered cheating. Posting your code to public repositories like GitHub (during or after the course) is not allowed. Manual and algorithmic cheating detection are used in this class. Any detected cheating will result in a grade of 0 on the assignment for all students involved, and potentially a grade of F in the course. 
+\\
+
+\textbf{Part 1: Derivations (Due Nov 7th, 2023 at 11:59pm)}
+
+\begin{problem}{15} An advantage of the ReLU activation function compared to the sigmoid activation function is that the RelU activation does not suffer from the vanishing gradient problem. However, the ReLU activation function is non-differentiable. \\
+
+\newpart{5} Propose an alternative to the ReLU activation function that has a similar shape, but is differentiable.  Provide a mathematical description of your alternate activation function and explain your design choices.\\
+
+\newpart{5} Provide one plot showing your activation function and the ReLU activation function.\\
+
+\newpart{5} What is the derivative of your proposed activation function? Show your work.
+
+\end{problem}
+
+\begin{problem}{15} While many neural networks use hidden units that apply a non-linearity to a weighted sum of inputs, this is not the only possible type of hidden unit computation. Consider the hidden unit computation $h_k = \exp(-b_k\Vert\mbf{w}_k-\mbf{x}\Vert_2^2)$ when answering this question. The parameters associated with the hidden unit are $\mbf{w}_k\in\mathbb{R}^D$ and $b_k>0$. The input is $\mbf{x}\in \mathbb{R}^D$.\\
+
+\newpart{2} What are the minimum and maximum possible values of $h_k$? Explain your answer.\\
+
+\newpart{3} At what value of $\mbf{x}$ is the maximum value of $h_k$ achieved? Explain your answer.\\
+
+\newpart{5} What is the gradient of this hidden unit computation with respect to the parameters $\mbf{w}_k$ and $b_k^?\\
+
+\newpart{5} Explain why a model using this hidden unit type may be hard to learn.
+
+\end{problem}
+
+\begin{problem}{20}
+    To date we have only studied the binary classification problem. In this question we will generalize the classification task to a set of classes $\mathcal{C}$. We define a discriminant function $g_c(\mbf{x})$ for each class $c\in\mathcal{C}$. We define the multi-class prediction function to be: $$f(\mbf{x}) = \argmax_{c\in\mathcal{C}} g_c(\mbf{x})$$ That is, we output the class with the largest value of $g_c(\mbf{x})$. The natural prediction loss for this problem remains the prediction error $[y\neq f(\mbf{x})]$, but as with the binary case, we can not learn using this loss. Instead, we will consider the differentiable multi-class loss shown below: 
+
+    $$L(y,\{g_c(\mbf{x})~|~c\in\mathcal{C}\}) = -g_y(\mbf{x}) + \log(\sum_{c'\in\mathcal{C}} \exp(  g_{c'}(\mbf{x})))$$
+
+    \newpart{5} Suppose there are only two classes $-1$ and $1$. Prove that if we fix $g_{-1}(\mbf{x})=0$, then the multi-class loss is equivalent to the logistic loss.\\
+    
+    \newpart{5} Suppose we use discriminant functions of the form  $g_c(\mbf{x})= \mbf{x}\mbf{w}_c + b_c$. Derive the gradient of the multi-class loss with respect to $\mbf{w}_c$ and $b_c$.\\
+
+    \newpart{5} Suppose we want to use discriminant functions $g_c(\mbf{x})$ given by a one hidden layer MLP as shown below. Derive an expression for the partial derivative of the multi-class loss with respect to $\mbf{w}_{dk}^1$. 
+%
+    \begin{align*}
+        g_c(\mbf{x}) = \mbf{h}\mbf{w}^o_c + b^o_c\\
+        \mbf{h}_k    = \sigma(\mbf{x}\mbf{w}^1_k+b^1_k)
+    \end{align*}
+    
+    \newpart{5} Provide a vectorized Pytorch implementation of the multi-class classification loss. The function should take as input a tensor of true class labels $Y$ of shape $(N,1)$ and a tensor of discriminant function values $G$ of shape $(N,C)$ where $C$ is the number of classes. The function should return the value of the loss for each $n$ as a tensor of shape $(N,1)$.
+
+\end{problem}
+
+\begin{problem}{5} The application that we will investigate in this assignment is classification of meteorological conditions in natural images. The training images are in sub-folders in the folder \verb|data/train|. Each sub-folder corresponds to one class. Each image is a 64x64 color .jpg file. There are 11 classes. \\
+
+\newpart{3} Write code to read in the images and compute the average image for each class. Include your code and the average image for each class in your report. Make sure to indicate the class label for each image. You may use any Python image library for this question.\\
+
+\newpart{2} Suppose we use a constant classifier that always predicts the majority class (the class with the most instances in the training set). What class would this constant classifier output for the training data and what is it's error rate on the training data?
+\end{problem}
+
+
+\vspace{1em}
+\textbf{Part 2: Implementation and Experimentation (Due Nov 14th, 2023 at 11:59pm).} In this part of the assignment you will use the PyTorch deep learning framework. As a first step, go the PyTorch website at \url{https://pytorch.org/} and install the current version. Several installation packages are available including for pip and conda. Alternatively, you can use Google Colab, which already has the required packages installed. You should start this assignment by reading the reference and tutorial information shown below. 
+
+\begin{itemize}
+\item Torch API: \url{https://pytorch.org/docs/stable/torch.html}
+\item Torch.Tensor module API \url{https://pytorch.org/docs/stable/tensors.html}
+\item Tensor Tutorial: \url{https://pytorch.org/tutorials/beginner/blitz/tensor_tutorial.html}
+\item Autograd Tutorial: \url{https://pytorch.org/tutorials/beginner/basics/autogradqs_tutorial.html}
+\item Torch.nn API: \url{https://pytorch.org/docs/stable/nn.html}
+\end{itemize}
+
+\begin{problem}{20} Use PyTorch to implement the multi-class classification model with linear discriminant functions 
+    $g_c(\mbf{x})= \mbf{x}\mbf{w}_c + b_c$ and the multi-class classification loss. Your implementation must be fully vectorized and encapsulated in a class that includes the methods \verb|fit| for learning the model using ERM and \verb|predict| for making predictions. You can include any other methods you need. A code template is not provided.\\
+    
+   \newpart{5} ~Include your code in your report along with a description of each function. You will need to select an optimizer and set the number of iterations to run the model for, the initial learning rate, and the convergence tolerance. Explain your choices. Upload your code to Gradescope in the file \verb|linear.py|.\\
+
+   \newpart{5} Use the supplied training data to learn the model. You will need to convert the directory of training data into PyTorch tensors for model learning. For this model, it is recommended to load the image data into an $(N,64\times 64\times 3)$ tensor and the labels into a $(N,1)$ tensor. Learn the model and report the training risk and training error rate.\\
+
+   \newpart{5} ~Use your learned model to make predictions for each test image.
+   Output a csv file \verb|linear_predictions.csv| containing the file name for each test image as the first column and the name of the predicted class as the second column. Upload your file to Gradescope for scoring.\\
+
+   \newpart{5} ~Based on the reported test error and the training error that you found, what problem does the learned model have? What strategies could you use to fix this problem?
+
+\end{problem}
+
+\begin{problem}{25} Use PyTorch to implement a neural network model using the multi-class classification loss. 
+    Your model can use any architecture, but must have at least one hidden layer. Your implementation must be fully vectorized and encapsulated in a class that includes the methods \verb|fit| for learning the model using ERM (or RRM) and \verb|predict| for making predictions. A code template is not provided.\\ 
+
+    \newpart{5} ~Provide a mathematical description of your model along with an architecture diagram. Explain your design choices.\\ 
+        
+    \newpart{5} ~Include your code in your report along with a description of each function. Upload your code to Gradescope in the file \verb|nn.py|.\\ 
+
+    \newpart{5} ~Describe your approach to learning the model including what optimizer you selected and how you selected hyper-parameter values. You will need to set the number of iterations to run the model for, the initial learning rate, the convergence tolerance and potentially other optimizer parameters. Explain your choices.\\
+
+    \newpart{5} ~Using the provided training data, fit the model and select the hyper-parameters. Include at least one plot supporting your selection of optimal hyper-parameter values and report the error on the training set that you found with the optimal hyper-parameters.\\
+
+    \newpart{5} Use your learned model to make predictions for each test image. Output a csv file \verb|nn_predictions.csv| containing the file name for each test image as the first column and the name of the predicted class as the second column. Upload your file to Gradescope for scoring. Your score for this question will depend on how well your model performs on test data.\\
+\end{problem}
+
+\textbf{Part 3: Bonus Questions (Due Nov 14th, 2023 at 11:59pm)} 
+You may optionally complete the bonus question described below. Answers to bonus questions should be submitted along with the solutions to the Part 2 report and code submission.\\
+
+\begin{problem}{5}
+\textbf{Bonus 1:} Develop hand-engineered features for this problem and use them with the linear model you implemented in Question 5. Can you find hand engineered features that work as well or better than our reference neural network model? Describe your feature computations and how you came up with them. Upload your code to Gradescope in the file \verb|bonus.py| and the predictions you found in the file \verb|bouns_predictions.csv|.
+\end{problem}
+
+\showpoints
+\end{document}
