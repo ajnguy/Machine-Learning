@@ -1,0 +1,145 @@
+\documentclass[11pt]{article}
+
+\usepackage{fullpage}
+\parindent=0in
+\input{testpoints}
+
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{color}
+
+\newcommand{\argmax}{\mathop{\arg\max}}
+\newcommand{\argmin}{\mathop{\arg\min}}
+
+\newcommand{\deriv}[1]{\frac{\partial}{\partial {#1}} }
+\newcommand{\dsep}{\mbox{dsep}}
+\newcommand{\Pa}{\mathop{Pa}}
+\newcommand{\ND}{\mbox{ND}}
+\newcommand{\De}{\mbox{De}}
+\newcommand{\Ch}{\mbox{Ch}}
+\newcommand{\graphG}{{\mathcal{G}}}
+\newcommand{\graphH}{{\mathcal{H}}}
+\newcommand{\setA}{\mathcal{A}}
+\newcommand{\setB}{\mathcal{B}}
+\newcommand{\setS}{\mathcal{S}}
+\newcommand{\setV}{\mathcal{V}}
+\DeclareMathOperator*{\union}{\bigcup}
+\DeclareMathOperator*{\intersection}{\bigcap}
+\DeclareMathOperator*{\Val}{Val}
+\newcommand{\mbf}[1]{{\mathbf{#1}}}
+\newcommand{\eq}{\!=\!}
+\newcommand{\sign}{\text{sign}}
+
+
+\begin{document}
+
+{\centering
+  \rule{6.3in}{2pt}
+  \vspace{1em}
+  {\Large
+    CS689: Machine Learning - Fall 2023\\
+    Homework 1\\
+  }
+  \vspace{1em}
+  Assigned: Tuesday, Sept 12.\\
+  \vspace{0.1em}
+  \rule{6.3in}{1.5pt}
+}
+\vspace{1pc}
+
+\textbf{Getting Started:} This assignment consists of two parts. Part 1 consists of written problems, derivations and coding warm-up problems, while Part 2 consists of implementation and experimentation problems. You should first complete Part 1. You should then start on the implementation and experimentation problems in Part 2 of the assignment. The implementation and experimentation problems must be coded in Python 3.8+. Download the assignment archive from Moodle and unzip the file. The data files for this assignment are in the \verb|data| directory. Code templates are in the \verb|code| directory. The only modules you are allowed to use in your implementation are those already imported in the code templates.\\
+
+\textbf{Submission and Due Dates:} Part 1 is due on Tuesday, September 19th at 11:59pm. Part 2 is due Wednesday, September 27th at 11:59pm. You may use at most one late day for Part 1 and at most two late days for Part 2. You must submit a PDF document to Gradescope with your solutions to Part 1. You must submit a PDF document to Gradescope containing the results of your experiments for Part 2. You must also submit your code files to Gradescope for Part 2. Questions where your code must run on Gradescope to count for credit are indicated. You are strongly encouraged to typeset your PDF solutions using LaTeX. The source of this assignment is provided to help you get started. You may also submit a PDF containing scans of \textit{clear} hand-written solutions. Work that us illegible will not count for credit.\\
+
+\textbf{Academic Honesty Reminder:} Homework assignments are individual work. Being in possession of another student's solutions, code, code output, or plots/graphs for any reason is considered cheating. Sharing your solutions, code, code output, or plots/graphs with other students for any reason is considered cheating. Copying solutions from external sources (books, web pages, etc.) is considered cheating. Use of AI tools (e.g., ChatGPT, etc.) in developing answers to both written questions and coding questions is considered cheating. Collaboration indistinguishable from copying is considered cheating. Posting your code to public repositories like GitHub (during or after the course) is not allowed. Manual and algorithmic cheating detection are used in this class. Any detected cheating will result in a grade of 0 on the assignment for all students involved, and potentially a grade of F in the course. 
+\\
+
+\textbf{Part 1: Written Problems, Derivations, and Coding Warm-Up (Due Tuesday, Sept 19th at 11:59pm)}
+
+\begin{problem}{10} Consider the linear regression prediction function $f_{\theta}(\mbf{x}) = \mbf{x}\mbf{w}+b$ with $\mbf{x}\in\mathbb{R}^D$ and $y\in\mathbb{R}$. 
+Further, consider a model of computation where arithmetic operations on real numbers (addition, subtraction, multiplication, division) cost 1 unit of computation each. How many units of computation are needed to compute the empirical risk when the prediction loss function is the squared loss and the data set has $N$ data cases? Explain your answer. 
+\end{problem}
+
+\clearpage
+\begin{problem}{10} Prove that the  matrix form of the empirical risk for linear regression assuming bias absorption $\frac{1}{N}(\mbf{Y}-\mbf{X}\theta)^T(\mbf{Y}-\mbf{X}\theta)$ is equivalent to the summation form without bias absorption. In other words, for any data set $\mathcal{D}$ and for any $\theta=[\mbf{w};b]$, show that:
+
+$$\frac{1}{N}(\mbf{Y}-\mbf{X}\theta)^T(\mbf{Y}-\mbf{X}\theta)=\frac{1}{N}\sum_{n=1}^N(y_n-(\mbf{x}_n\mbf{w}+b))^2$$
+\end{problem}
+
+\begin{problem}{10} Consider a regression task where $\mathcal{X}=\mathbb{R}^D$, but $\mathcal{Y}=\mathbb{R}^K$ for $K>1$. In this setting, each output $\mbf{y}$ is a vector of shape $(1,K)$ instead of a scalar real value. Use this information to answer the following questions.\\
+
+\newpart{5} Write down a linear prediction function model for this task. Your answer should be the form of a single matrix equation that produces a vector $\mbf{y}$ as output. Explain your answer and define the shapes of the model parameters.\\
+
+\newpart{5} Suppose you have access to an implementation of the OLS estimator for the standard linear regression model where $\mathcal{Y}=\mathbb{R}$ and $\mathcal{X}=\mathbb{R}^D$. Explain how we can use this standard implementation to learn the model parameters for the case where $\mathcal{Y}=\mathbb{R}^K, K>1$.
+
+\end{problem}
+
+\begin{problem}{20} Consider the problem of building a regression model for periodic time series data. In this problem, $y\in\mathbb{R}$ and $x\in\mathbb{R}$. One way to model such data is with a regression function built from a sum of $K$ sine-based components. Each component $k$ has an amplitude $w_k$, a phase $\phi_k$ and a period $\rho_k$. We also include a bias parameter $b$. The form of the prediction function is shown below:     
+
+$$f_{\theta}(x) = b + \sum_{k=1}^K w_k \sin\left(\frac{2\pi}{\rho_k}x-\phi_k\right)$$
+
+In this prediction function, the parameters are $\theta=[b,\mbf{w}, \mbf{\phi}]$ where $b$ is a scalar, $\mbf{w}=[w_1,...,w_K]$ and $\mbf{\phi}=[\phi_1,...,\phi_K]$. The number of periodic components $K$ and their periods $\rho_k$ are fixed.\\ 
+
+\newpart{5} Consider the case where $K=2$, $\rho=[40,20]$
+and $\theta=[1.0,0.5,0.75,-0.25,0.7]$. Plot $f_{\theta}(x)$ from $0$ to $96$ using these parameters.\\
+
+\newpart{5} Suppose we have a data set $\mathcal{D}$ containing just two observations $(20,-1)$ and $(50,2.5)$. Compute the empirical risk for this data set using $K=2$, $\rho=[40,20]$ and $\theta=[1.0,0.5,0.75,-0.25,0.7]$. Use the squared prediction loss. Show your work.\\
+
+\newpart{5} Derive the gradient of the empirical risk function for this model under the squared prediction loss and assuming $K=2$. Clearly indicate the components that correspond to $b$, $\mbf{w}$, and $\phi$. Show your work.\\
+
+\newpart{5} ~~Suppose we have a data set $\mathcal{D}$ containing just two observations $(20,-1)$ and $(50,2.5)$. Compute the gradient of the empirical risk for this data set using $K=2$, $\rho=[40,20]$ and $\theta=[1.0,0.5,0.75,-0.25,0.7]$ under the squared prediction loss. Clearly indicate the components that correspond to $b$, $\mbf{w}$, and $\phi$. Show your work.\\
+
+\end{problem}
+
+\clearpage
+\vspace{1em}
+\textbf{Part 2: Implementation and Experimentation (Due Wednesday, Sept 27th at 11:59pm)}
+
+\begin{problem}{50} ~In this problem, you will implement the periodic regression model introduced in Question 4 and apply it to the problem of modeling tide heights in Hawaii. In this data set, the $x$ values correspond to time since a reference date/time measured in hours. The $y$ values correspond to sea level height in meters. The training set contains 28 days worth of data. The test set contains the next 28 days worth of data. You will train the model on the training data set, and then use it to forecast tide heights on the test data set. As in Question 4, use the squared prediction loss. \\
+
+For this problem, we will use a model with $K=9$ components. The periods for these components are derived from properties of the Sun-Earth-Moon system that determine tide dynamics. The values are $\rho=[12.42, 12.00, 12.66, 23.93, 25.82, 6.21, 4.14, 6.00, 6.10]$.\footnote{\url{https://www.vims.edu/research/units/labgroups/tc_tutorial/tide_analysis.php}}\\
+
+Your model implementation should be contained in the file \verb|regression.py|. Code implementing your experiments should be contained in  \verb|experiments.py|. You are strongly encouraged to use the Matplotlib Python library to create graphs. \\
+    
+To begin, implement a Python class for the model starting from the code in \verb|regression.py|. Your class must implement the methods indicated below. You can include any additional methods that you need. Please include the functions listed below first, followed by any functions you add. 
+    
+\begin{itemize}
+        \item \verb|f|: The prediction function. Takes a parameter vector $\theta$ as a Numpy array of shape $(2K+1,1)$, a Numpy array of inputs $\mbf{X}$ of shape $(N, 1)$, and a Numpy array of $\rho$ values of shape $(K,1)$ as input. Returns a Numpy array of predicted outputs $\hat{\mbf{Y}}$ of shape $(N, 1)$ where $\hat{\mbf{Y}}_i=f_{\theta}(x_i)$. 
+        
+        \item \verb|risk|: The risk function. Takes a parameter vector $\theta$ as a Numpy array of shape $(2K+1,1)$, a Numpy array of inputs $\mbf{X}$ of shape $(N, 1)$, a Numpy array of outputs $\mbf{Y}$ of shape $(N, 1)$ and a Numpy array of $\rho$ values of shape $(K,1)$ as input. Returns the value of the risk of $f_{\theta}$ computed using these data as a single float. 
+        
+        \item \verb|riskGrad|: The gradient of the risk function. Takes a parameter vector $\theta$ as a Numpy array of shape $(2K+1,1)$, a Numpy array of inputs $\mbf{X}$ of shape $(N, 1)$, a Numpy array of outputs $\mbf{Y}$ of shape $(N, 1)$ and a Numpy array of $\rho$ values of shape $(K,1)$ as input. Returns the gradient of the risk of $f_{\theta}$ computed using these data as a Numpy array of shape $(2K+1,1)$. This implementation must run on Gradescope.     
+        
+        \item \verb|fit|: Takes a Numpy array of inputs $\mbf{X}$ of shape $(N, 1)$, a Numpy array of outputs $\mbf{Y}$ of shape $(N, 1)$ as input, and a Numpy array of $\rho$ values of shape $(K,1)$ as input. Computes and returns the estimated model parameters $\hat{\theta}$ as a Numpy array of shape $(N, 1)$. You will need to use a numerical optimizer to implement this function. The optimizer we will use is \verb|scipy.optimize.minimize| with the L-BFGS-B method and  options=\{"disp":1\}, tol=1e-6. Use $\theta_0=0$ as the starting point.
+        
+\end{itemize}
+    
+    \newpart{10}~~ Implementation of the \verb|risk| function. This implementation must run on Gradescope.\\
+
+    \newpart{10}~~ Implementation of the \verb|riskGrad| function. This implementation must run on Gradescope.(Hint: See \verb|scipy.optimize.approx_fprime| for help debugging your gradient implementation).\\
+
+    \newpart{5}~~ Implementation of the \verb|predict| function. This implementation must run on Gradescope.\\
+    
+    \newpart{5}~~ Using the provided tide height data set \verb|data.npz|, fit the model
+    on all of the training data using the \verb|fit()| function. Provide a plot of the optimization objective function value (the risk value) for each step of the optimizer. (Hint: See the \verb|callback| argument to \verb|scipy.optimize.minimize()| to access the per iteration function values from the optimizer).\\
+    
+    \newpart{5}~~ Report the optimal parameter values $b$, $\mbf{w}$ and $\phi$ found by the optimizer in Part (d). Report the value of each parameter separately. Give all values in scientific notation using four decimal places.\\
+    
+    \newpart{5}~~ Compute and report the average squared loss of the learned model from Part (d) on the training set and the test set. Report all values in scientific notation using four decimal places.\\
+    
+    \newpart{5}~~ Produce a single plot showing the \textbf{first} 48 hours of the training data along with predicted tide heights given by the fit model. Show the training data as points and the tide height predictions as a line graph.\\
+    
+    \newpart{5}~~ Produce a single plot showing the \textbf{last} 48 hours of the test data along with predicted tide heights given by the fit model. Show the test data as points and the tide height predictions as a line graph.\\
+    
+        
+\end{problem}
+
+
+\showpoints
+\end{document}

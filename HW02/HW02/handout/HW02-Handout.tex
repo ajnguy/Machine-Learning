@@ -1,0 +1,191 @@
+\documentclass[11pt]{article}
+
+\usepackage{fullpage}
+\parindent=0in
+\input{testpoints}
+
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+\usepackage{inconsolata}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{color}
+
+\newcommand{\argmax}{\mathop{\arg\max}}
+\newcommand{\deriv}[1]{\frac{\partial}{\partial {#1}} }
+\newcommand{\dsep}{\mbox{dsep}}
+\newcommand{\Pa}{\mathop{Pa}}
+\newcommand{\ND}{\mbox{ND}}
+\newcommand{\De}{\mbox{De}}
+\newcommand{\Ch}{\mbox{Ch}}
+\newcommand{\graphG}{{\mathcal{G}}}
+\newcommand{\graphH}{{\mathcal{H}}}
+\newcommand{\setA}{\mathcal{A}}
+\newcommand{\setB}{\mathcal{B}}
+\newcommand{\setS}{\mathcal{S}}
+\newcommand{\setV}{\mathcal{V}}
+\DeclareMathOperator*{\union}{\bigcup}
+\DeclareMathOperator*{\intersection}{\bigcap}
+\DeclareMathOperator*{\Val}{Val}
+\newcommand{\mbf}[1]{{\mathbf{#1}}}
+\newcommand{\eq}{\!=\!}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\sign}{sign}
+
+
+\begin{document}
+
+{\centering
+  \rule{6.3in}{2pt}
+  \vspace{1em}
+  {\Large
+    CS689: Machine Learning - Fall 2023\\
+    Homework 2\\
+  }
+  \vspace{1em}
+  Assigned: Thursday, Sept 28th. \\
+  \vspace{0.1em}
+  \rule{6.3in}{1.5pt}
+}
+\vspace{1pc}
+
+
+\textbf{Getting Started:} This assignment consists of two parts. Part 1 consists of written problems, derivations and coding warm-up problems, while Part 2 consists of implementation and experimentation problems. You should first complete Part 1. You should then start on the implementation and experimentation problems in Part 2 of the assignment. The implementation and experimentation problems must be coded in Python 3.8+. Download the assignment archive from Moodle and unzip the file. The data files for this assignment are in the \verb|data| directory. Code templates are in the \verb|code| directory. The only modules you are allowed to use in your implementation are those already imported in the code templates.\\
+
+\textbf{Submission and Due Dates:} Part 1 is due on Thursday, October 5th at 11:59pm. Part 2 is due Friday, October 13th at 11:59pm. You may use at most one late day for Part 1 and at most two late days for Part 2. Work submitted after you have used all available late days does not count for credit. You must submit a PDF document to Gradescope with your solutions to Part 1. You must submit a PDF document to Gradescope containing the results of your experiments for Part 2. You must also submit your code files to Gradescope for Part 2. Questions where your code must run on Gradescope to count for credit are indicated. You are strongly encouraged to typeset your PDF solutions using LaTeX. The source of this assignment is provided to help you get started. You may also submit a PDF containing scans of \textit{clear} hand-written solutions. Work that us illegible will not count for credit.\\
+
+\textbf{Bonus Questions:} This assignment includes three bonus questions. You have the option to select and complete any \textit{one} bonus question for up to 5 bonus points. Answers to bonus questions must be turned in with Part 2. Bonus points are added to your total homework grade, up to a cap of 400 total homework points.\\ 
+
+\textbf{Academic Honesty Reminder:} Homework assignments are individual work. Being in possession of another student's solutions, code, code output, or plots/graphs for any reason is considered cheating. Sharing your solutions, code, code output, or plots/graphs with other students for any reason is considered cheating. Copying solutions from external sources (books, web pages, etc.) is considered cheating. Use of AI tools (e.g., ChatGPT, etc.) in developing answers to both written questions and coding questions is considered cheating. Collaboration indistinguishable from copying is considered cheating. Posting your code to public repositories like GitHub (during or after the course) is not allowed. Manual and algorithmic cheating detection are used in this class. Any detected cheating will result in a grade of 0 on the assignment for all students involved, and potentially a grade of F in the course. 
+\\
+
+
+\textbf{Part 1: Written Problems and Derivations (Due Thursday, Oct 5th at 11:59pm)}
+
+\begin{problem}{5} Consider the set $\mathcal{S}$ of length-$K$ vectors $\mbf{v}$ described below (recall that the notation $\mbf{v}_k$ refers to the $k^{th}$ component of vector $\mbf{v}$). Prove whether this set convex or is not convex. 
+
+$$\mathcal{S} = \Big\{\mbf{v} ~|~ \mbf{v}\in\mathbb{R}^K,\; \forall\; k \; \mbf{v}_k \geq 0, \sum_{k=1}^Kv_k=1\Big\}$$    
+\end{problem}
+
+\begin{problem}{5} Suppose we have a binary classification prediction function $f(\mbf{x})$ and we want to estimate its expected zero-one loss with respect to a distribution over data cases $p(\mbf{X}=\mbf{x},\mbf{Y}=\mbf{y})$. Suppose we have access to a data set of $(\mbf{x}_n,y_n)$ pairs $\mathcal{D}$ sampled IID from the distribution $p(\mbf{X}=\mbf{x},\mbf{Y}=\mbf{y})$. Prove that that empirical risk computed using $\mathcal{D}$ is an unbiased estimator of the expected zero-one loss under the distribution $p(\mbf{X}=\mbf{x},\mbf{Y}=\mbf{y})$.
+\end{problem}
+
+\begin{problem}{10} The key problem with learning binary classifiers using ERM is that the intuitive loss function, the prediction error or zero-one loss $L_{01}(y,f_{\theta}(\mbf{x}))=[y\neq f_{\theta}(\mbf{x})]$, results in a non-differentiable optimization problem. This problem can be overcome by instead minimizing an upper bound on the zero-one loss function. Consider the loss function $L_2(y,g_{\theta}(x))=(1-yg_{\theta}(\mbf{x}))^2$ when answering the following questions. Recall that $g_{\theta}(x)$ is the discriminant function of the classifier $f_{\theta}(\mbf{x})$.  \\
+
+\newpart{5}~~ Prove that $L_2(y,g_{\theta}(x))$ provides and upper bound on the zero-one loss $L_{01}(y,f_{\theta}(\mbf{x}))=[y\neq f_{\theta}(\mbf{x})]$. (Note: proof by picture is not sufficient for this question).\\
+
+\newpart{5}~~ Explain why even though $L_2(y,g_{\theta}(x))$ provides an upper bound on the zero-one loss, it might not be a good choice for learning a linear classifier.
+
+\end{problem}
+
+\begin{problem}{10} The linear binary classifier is one of the simplest types of classification models. However, there is a yet simpler classification model: the constant classifier. One way to parameterize this model is via the prediction function $f_{\theta}(\mbf{x}) = \sign(g_{\theta}(\mbf{x}))$ with $g_{\theta}(\mbf{x}) = \theta$. In other words, we define a constant prediction function  using a constant discriminant function $g_{\theta}(\mbf{x})$ that returns the same value $\theta\in\mathbb{R}$ for any input $\mbf{x}$. Use this model to answer the following questions.\\
+
+\newpart{5} Using the logistic loss, derive the ERM estimator of $\theta$ for this model. Note that this is a rare example of a classification model with a closed-form estimator.\\
+
+\newpart{5} Suppose that we learn the model on a data set $\mathcal{D}_{tr}$ and find that its training error rate is $5\%$. What does this tell us about the training data set?
+
+\end{problem}
+
+
+\begin{problem}{20} When learning a supervised model for real-time application, there is often a need to make the model as compact as possible to minimize prediction latency. An important source of latency in linear classifiers is using features that do not contribute to improving prediction accuracy. The key problem then is efficiently identifying features that can be removed from a model while minimally impacting predictive performance. One way to meet this goal is through the use of sparsity-inducing regularization functions that tend to drive the weights of non-predictive features to zero. \\
+
+The most basic such regularizer is the $\ell_1$ norm regularizer that penalizes the sum of the absolute values of the weights. However, the absolute value function is non-differentiable and thus can not be used in a gradient-based optimization framework. We can instead approximate it using a continuous and differentiable surrogate regularization function such as $|x| \approx \sqrt{x^2+\epsilon}$ for a small $\epsilon>0$. \\
+
+In this problem, we will compose this surrogate sparsity-inducing regularizer with the binary logistic regression model to form a sparse classifier. We will use the standard binary linear classifier with discriminant function $g_{\theta}(\mbf{x}) = \mbf{x}\mbf{w}+b$ and $\theta=[\mbf{w};b]$. The regularized risk we will use is shown below where $RR(g_{\theta},\mathcal{D})$ denotes the regularized risk, $R(g_{\theta},\mathcal{D})$ denotes the risk function, and $S(\theta)$ denotes the regularization function. $\lambda\geq 0$ is the regularization hyper-parameter and $\epsilon>0$ is the parameter of the surrogate regularizer. Use this regularized risk function to answer the following questions.
+
+\begin{align} 
+RR(g_{\theta},\mathcal{D}) &= R(g_{\theta},\mathcal{D}) + \lambda S(\theta) \\
+R(g_{\theta},\mathcal{D}) &= \sum_{n=1}^N \log\left(1+\exp(-y_ng_{\theta}(\mbf{x}_n))\right)\\
+S(\theta)&=\sum_{d=1}^D \sqrt{\mbf{w}_d^2+\epsilon}
+\end{align}
+
+\newpart{5} Consider the case where $\mbf{x}\in\mathbb{R}^2$. Suppose we have a model with parameters $\theta=[-0.3,~2,~1.5]^T$. What is the value of the regularization term $S(\theta)$ for this model? Use $\epsilon = 0.01$. Give the answer to four decimal places.\\
+
+\newpart{5} Suppose we have a data set containing two data case $([0.5,~0.7],~1)$ and $([-0.25,~0.3],~-1)$. What is the value of the regularized risk $RR(g_{\theta},\mathcal{D})$ using this data set with the model parameters $\theta=[-0.3,~2,~1.5]^T$, the regularization hyper-parameter value  $\lambda=0.1$ and $\epsilon = 0.01$? Give the answer to four decimal places.\\
+
+\newpart{5} Derive the gradient of the regularization function $\nabla S(\theta)$. Show your work.\\
+
+\newpart{5} Suppose we have a data set containing two data case $([0.5,~0.7],~1)$ and $([-0.25,~0.3],~-1)$. Evaluate the gradient of the regularized risk $\nabla RR(g_{\theta},\mathcal{D})$ using this data set with the model parameters $\theta=[-0.3,~2,~1.5]^T$, the regularization hyper-parameter value  $\lambda=0.1$ and $\epsilon = 0.01$. Give the answer to four decimal places for each component of the gradient vector.
+
+\end{problem}
+
+\vspace{1em}
+\textbf{Part 2: Implementation and Experimentation (Due Friday, October 13th at 11:59pm)}
+
+\begin{problem}{50} ~In this problem, you will implement learning for the sparse logistic regression model introduced in Question 5. You will use the model to learn a cough detector based on features of audio waveforms. The data set included in the assignment package contains the processed feature values and labels along with the file names that the features were computed from. The directory of audio samples is available here: \url{https://drive.google.com/file/d/117lxAojHov0IY6ythK39S1Vnyw8bI6LT/} as a 1GB zip download for those interested in listening to raw samples or completing a bonus question using raw data. The original source for the data is here: \url{https://zenodo.org/record/7024894}.\\
+
+To begin, implement a Python class for the model starting from the code in \verb|rlr.py|. Your class must implement the methods indicated below. You can include any additional methods that you need, but please add them after the required methods and do not change the function signatures of the required methods. Note that for your implementation to be computationally efficient, you must use Numpy array operations. Your code will be assessed for both correctness and computational efficiency in this assignment. We will use $\epsilon=0.01$ throughout the implementation. This value can be hard-coded in the implementation. Include the code needed to run your experiments in \verb|experiments.py|. The \verb|experiments.py| starter file provides an example of how to load the data and call each method. Include your model implementation in \verb|rlr.py|. Upload both files to Gradescope. 
+    
+\begin{itemize}
+
+\item \verb|discriminant|: Takes a Numpy array of parameter values $\theta$ of shape (D+1,1) and a Numpy array of inputs $\mbf{X}$ of shape (N,D) as input. Returns the value of the discriminant function $g_{\theta}(\mbf{x})$ for each input data case as a Numpy array of shape (N,1).
+
+\item   \verb|predict|: Takes a Numpy array of parameter values $\theta$ of shape (D+1,1) and a Numpy array of inputs $\mbf{X}$ of shape (N,D) as input. Returns a Numpy array of predicted outputs $\hat{\mbf{Y}}$ with $\hat{\mbf{Y}}_i = f_{\theta}(\mbf{x}_i)$ of shape (N,1).
+
+\item  \verb|risk|: Takes a Numpy array of parameter values $\theta$ of shape (D+1,1),  a Numpy array of inputs $\mbf{X}$ of shape (N,D), and a Numpy array of outputs $\mbf{Y}$ of shape (N,1) as input. Returns the value of the risk $R(g_{\theta},\mathcal{D})$ as a float. 
+
+\item  \verb|regularizer|: Takes a Numpy array of parameter values $\theta$ of shape (D+1,1) as input. Returns the value of the regularizer $S(\theta)$ as a float.
+
+\item  \verb|regularized_risk|: Takes a Numpy array of parameter values $\theta$ of shape (D+1,1), a Numpy array of inputs $\mbf{X}$ of shape (N,D), and a Numpy array of outputs $\mbf{Y}$ of shape (N,1) and a value of $\lambda$ as a float as input. Returns the value of the regularized risk $RR(g_{\theta},\mathcal{D})$ as a float.
+
+\item  \verb|risk_grad|: Takes a Numpy array of parameter values $\theta$ of shape (D+1,1),  a Numpy array of inputs $\mbf{X}$ of shape (N,D), and a Numpy array of outputs $\mbf{Y}$ of shape (N,1) as input. Returns the gradient vector of the risk $\nabla R(g_{\theta},\mathcal{D})$ as a Numpy array of shape (D+1,1).
+
+\item  \verb|regularizer_grad|: Takes a Numpy array of parameter values $\theta$ of shape (D+1,1) as input. Returns the value of the gradient of the regularizer $\nabla S(\theta)$  as a Numpy array of shape (D+1,1).
+
+\item  \verb|regularized_risk_grad|: Takes a Numpy array of parameter values $\theta$ of shape (D+1,1), a Numpy array of inputs $\mbf{X}$ of shape (N,D), and a Numpy array of outputs $\mbf{Y}$ of shape (N,1) and a value of $\lambda$ as a float as input. Returns the value of the gradient of the regularized risk $\nabla RR(g_{\theta},\mathcal{D})$  as a Numpy array of shape (D+1,1).
+
+\item  \verb|fit|: Takes a Numpy array of inputs $\mbf{X}$ of shape (N,D), a Numpy array of outputs $\mbf{Y}$ of shape (N,1), and and a value of $\lambda$ as a float as input. Fits the model and returns the optimal $\theta$ as a Numpy array of shape (D+1,1). The optimizer we will use is \verb|scipy.optimize.minimize| with the L-BFGS-B method and tol=1e-7. Use the $\theta=[0,...,0]^T$ as the starting point for the optimization.
+
+\end{itemize}
+
+\newpart{2}~~ Implementation of the \verb|discriminant| function. This implementation must run on Gradescope. For full points, this function must used vectorized Numpy operations. Include a listing of your implementation in the report.\\
+
+\newpart{2}~~ Implementation of the \verb|predict| function. This implementation must run on Gradescope. For full points, this function must used vectorized Numpy operations. Include a listing in the report.\\
+
+\newpart{4}~~ Implementation of the \verb|risk| function. This implementation must run on Gradescope. For full points, this function must used vectorized Numpy operations.  Include a listing of your implementation in the report.\\
+
+\newpart{4}~~ Implementation of the \verb|regularizer| function. This implementation must run on Gradescope. For full points, this function must used vectorized Numpy operations.  Include a listing of your implementation in the report.\\
+
+\newpart{2}~~ Implementation of the \verb|regularized_risk| function. This implementation must run on Gradescope. For full points, this function must used vectorized Numpy operations.  Include a listing of your implementation in the report.\\
+
+\newpart{4}~~ Implementation of the \verb|risk_grad| function. This implementation must run on Gradescope. For full points, this function must used vectorized Numpy operations.  Include a listing of your implementation in the report.\\
+
+\newpart{5}~~ Implementation of the \verb|regularizer_grad| function. This implementation must run on Gradescope. For full points, this function must used vectorized Numpy operations.  Include a listing of your implementation in the report.\\
+
+\newpart{2}~~ Implementation of the \verb|regularized_risk_grad| function. This implementation must run on Gradescope. For full points, this function must used vectorized Numpy operations.  Include a listing of your implementation in the report.\\
+
+\newpart{5} ~~Fit the model using the training data  $(Xtr, Ytr)$ for $\lambda\in\{0,1,...,10\}$. As your answer to the question, include one graph showing both the training error on $(Xtr, Ytr)$ and the test error on $(Xte, Yte)$ versus the regularization parameter strength. \\
+
+\newpart{5} ~~Denote by $\hat{\theta}^{\lambda}$ the model parameters estimated using regularization parameter value $\lambda$. Produce a stem plot showing the weight on each feature for $\hat{\theta}^0$, $\hat{\theta}^5$, and $\hat{\theta}^{10}$ (see \url{https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.stem.html}). What two trends do you see in the weights as the regularization strength increases?\\
+
+\newpart{5} ~~To quantify the level of the sparsity in the model, we can compute the percentage of weights with absolute value close to $0$. For this question, produce a graph showing the percentage of weights in $\hat{\theta}^{\lambda}$ with absolute value less than $0.01$ versus the regularization parameter strength $\lambda$ for $\lambda\in\{0,1,...,10\}$.\\
+
+\newpart{5} ~~For each of the the fit models, remove the features and the weights where the absolute value of $\hat{\theta}^{\lambda}$ is less than $0.01$ to sparsify the model and the corresponding input data. As your answer to the question, include one graph showing both the training error and the test error versus the regularization parameter strength using the sparsified model and corresponding sparsified data. \\
+
+\newpart{5} ~~Given the evidence produced above, what would you select as the best model to deploy?\\
+
+\end{problem}
+
+\clearpage
+\textbf{Part 3: Bonus Questions (Due Friday, October 13th at 11:59pm)} 
+You may optionally complete any \textit{one} of the following three bonus questions. Answers to bonus questions should be submitted along with the solutions to Part 2 report and/or code submission.
+
+\begin{problem}{5}
+\textbf{Bonus 1:} Repeat the above experiments using $\ell_2$ regularized logistic regression. What differences do you note compared to the use of the approximate $\ell_1$ regularizer? Providing supporting experimental evidence. Include a description of the results in your report and the corresponding code in your code upload.
+\end{problem}
+
+\begin{problem}{5}
+\textbf{Bonus 2:} The full data set of audio samples for this problem is available as the link provided in Question 6. The raw data were processed using a very basic feature extraction approach based on Mel Spectrograms averaged over the time axis (specifically, using \verb|librosa.feature.melspectrogram|). Develop a new feature extraction approach that performs better than the provided features when used with the linear logistic regression classifier. Explain your feature extraction process and provide experimental evidence supporting their enhanced performance in your report and submit your code.
+\end{problem}
+
+\begin{problem}{5}
+\textbf{Bonus 3:} Develop a web-based cough detection app that integrates the learned cough detection model into a web app that records an audio sample, extracts features, and applies the model, and returns the result. Supply a link to your app and a description of what you implemented in your report as your answer to this question.
+\end{problem}
+
+\showpoints
+\end{document}
