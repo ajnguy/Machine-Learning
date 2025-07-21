@@ -1,0 +1,177 @@
+\documentclass[11pt]{article}
+
+\usepackage{fullpage}
+\parindent=0in
+\input{testpoints}
+
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+\usepackage{inconsolata}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{color}
+
+\newcommand{\argmax}{\mathop{\arg\max}}
+\newcommand{\deriv}[1]{\frac{\partial}{\partial {#1}} }
+\newcommand{\dsep}{\mbox{dsep}}
+\newcommand{\Pa}{\mathop{Pa}}
+\newcommand{\ND}{\mbox{ND}}
+\newcommand{\De}{\mbox{De}}
+\newcommand{\Ch}{\mbox{Ch}}
+\newcommand{\graphG}{{\mathcal{G}}}
+\newcommand{\graphH}{{\mathcal{H}}}
+\newcommand{\setA}{\mathcal{A}}
+\newcommand{\setB}{\mathcal{B}}
+\newcommand{\setS}{\mathcal{S}}
+\newcommand{\setV}{\mathcal{V}}
+\DeclareMathOperator*{\union}{\bigcup}
+\DeclareMathOperator*{\intersection}{\bigcap}
+\DeclareMathOperator*{\Val}{Val}
+\newcommand{\mbf}[1]{{\mathbf{#1}}}
+\newcommand{\eq}{\!=\!}
+\newcommand{\cut}[1]{}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\sign}{sign}
+
+
+\begin{document}
+
+{\centering
+  \rule{6.3in}{2pt}
+  \vspace{1em}
+  {\Large
+    CS689: Machine Learning - Fall 2023\\
+    Homework 4\\
+  }
+  \vspace{1em}
+  Assigned: Wednesday, November 15th, 2023 \\
+  \vspace{0.1em}
+  \rule{6.3in}{1.5pt}
+}
+\vspace{1pc}
+
+\textbf{Getting Started:} This assignment consists of two parts. Part 1 consists of written problems, derivations, and implementation warmup questions, while Part 2 consists of implementation and experimentation problems. You should first complete Part 1. You should then start on the implementation and experimentation problems in Part 2 of the assignment. The implementation and experimentation problems must be coded in Python 3.8+. Download the assignment archive from Moodle and unzip the file. The data files for this assignment are in the \verb|data| directory.\\
+
+\textbf{Submission and Due Dates:} You may use at most one late day for Part 1 and at most two late days for Part 2. Work submitted after you have used all available late days does not count for credit. You must submit a PDF document to Gradescope with your solutions to Part 1. You must submit a PDF document to Gradescope containing the results of your experiments for Part 2. You must also submit your code files to Gradescope for Part 2. Questions where your code must run on Gradescope to count for credit are indicated. You are strongly encouraged to typeset your PDF solutions using LaTeX. The source of this assignment is provided to help you get started. You may also submit a PDF containing scans of \textit{clear} hand-written solutions. Work that us illegible will not count for credit.\\
+
+\textbf{Bonus Questions:} This assignment includes one bonus question worth 5 bonus points. Answers to bonus questions must be turned in with Part 2. Bonus points are added to your total homework grade, up to a cap of 400 total homework points.\\ 
+
+\textbf{Academic Honesty Reminder:} Homework assignments are individual work. Being in possession of another student's solutions, code, code output, or plots/graphs for any reason is considered cheating. Sharing your solutions, code, code output, or plots/graphs with other students for any reason is considered cheating. Copying solutions from external sources (books, web pages, etc.) is considered cheating. Use of AI tools (e.g., ChatGPT, etc.) in developing answers to both written questions and coding questions is considered cheating. Collaboration indistinguishable from copying is considered cheating. Posting your code to public repositories like GitHub (during or after the course) is not allowed. Manual and algorithmic cheating detection are used in this class. Any detected cheating will result in a grade of 0 on the assignment for all students involved, and potentially a grade of F in the course. 
+\\
+
+\textbf{Part 1: Derivations and Basic Coding (Due Tuesday, Nov 21st at 11:59pm)}
+
+\begin{problem}{20} Suppose we have a data set of $(\mbf{x},y)$ pairs where $\mbf{x}\in\mathbb{R}^D$ and and $y\in\mathbb{R}^{\geq 0}$ (the non-negative reals) and we wish to construct a probabilistic regression model. Answer the following questions.\\
+
+\newpart{5} What unconditional parametric probability density function $p_{\phi}(Y=y)$ could you use to model $y$? Give a mathematical expression for the density function and explain your choice.\\
+
+\newpart{5} What constraints are there on the parameters of the unconditional parametric probability density function that you selected?\\
+
+\newpart{5} Using the unconditional parametric probability density function that you selected, construct a probabilistic regression model  $p_{\theta}(Y=y|\mbf{X}=\mbf{x})$. Specify mathematical expressions for the parameter prediction functions and explain your answers.\\
+
+\newpart{5} Write down and expand the negative log likelihood function for your model.
+
+\end{problem}
+
+\begin{problem}{10} Consider the product of Bernoulli marginals distribution specified below when answering this question. Assume that $\mbf{x}=[x_1,...,x_D]\in\{0,1\}^D$.
+
+$$p_{\theta}(\mbf{X}=\mbf{x}) = \prod_{d=1}^D \theta_d^{x_d} (1-\theta_d)^{(1-x_d)}$$
+
+\newpart{5} ~Let $k<D$. Use the definition of marginalization to derive an expression for the marginal distribution on $\mbf{x}_{1:k}=[x_1,...,x_k]$. Simplify the answer as much as possible.\\
+
+\newpart{5} Let $k<D$. Use the definition of marginalization and conditioning to show that the conditional distribution of $x_D$ given $\mbf{x}_{1:k}$ is equal to the marginal distribution of $x_D$. 
+
+\end{problem}
+
+\begin{problem}{20} In this question you will implement and derive computations for inference with mixture models. A full covariance Gaussian mixture model is defined as shown below for $z\in\{1,...,K\}$ and $\mbf{x}\in \mathbb{R}^D$. In the equations below, $\mbf{x}$ and $\mu_z$ are assumed to be row vectors. The notation $|A|$ indicates the determinant of the matrix $A$.
+
+\begin{align*}
+    p_{\theta}(\mbf{X}=\mbf{x},Z=z) &= p_{\theta}(Z=z)p_{\theta}(\mbf{X}=\mbf{x}|Z=z)\\
+    p_{\theta}(Z=z)&=\pi_z \\
+    p_{\theta}(\mbf{X}=\mbf{x}|Z=z) &= \frac{1}{|2\pi\Sigma_z|^{1/2}}\exp\left(-\frac{1}{2}(\mbf{x}-\mu_z)\Sigma_z^{-1}(\mbf{x}-\mu_z)^T\right)
+\end{align*}
+
+A Gaussian mixture model trained on the MNIST data set using the known digit classes as the mixture component indicators is provided in the file \verb|mixture_model.npz|. As a result of this training, there is a one-to-one correspondence between clusters and digit classes. The model consists of a NumPy array of cluster means mu of shape $(10,784)$, a NumPy array of cluster covariance matrices Sigma of shape $(10,784,784)$, and a NumPy array of mixture proportions pi of shape $(10,1)$. The mean for cluster $k$ is given by mu[k,:], the covariance matrix for cluster $k$ is given by Sigma[k,:,:]. The file \verb|mixture_data.npz| contains 10 example data cases in the array X. The $n^{th}$ data case is given by X[n,:]. Both the mean vectors and data cases can be converted back into single channel images using reshape(28,28). Use this information to answer the following questions.\\
+
+\newpart{2} The computation of the joint distribution $P_{\theta}(\mbf{X}=\mbf{x},Z=z)$ has the potential to numerically underflow or overflow for a high-dimensional mixture model. As a result, it is typical to perform computations using  $\log (P_{\theta}(\mbf{X}=\mbf{x},Z=z))$ whenever possible. Provide an expression for $\log (P_{\theta}(\mbf{X}=\mbf{x},Z=z))$ for the Gaussian mixture model and simplify. Show your work.\\
+
+\newpart {3} In your report, provide a vectorized PyTorch implementation of the function $\log(P_{\theta}(\mbf{X}=\mbf{x},Z=z))$. Use your implementation to compute and report $\log(P_{\theta}(\mbf{X}=\mbf{x},Z=z))$ for the first data case X[0,:] and each value of $z$. Report the results in scientific notation using four decimal places.\\
+
+\newpart{2} Similar to the joint, the computation of the conditional distribution $P_{\theta}(Z=z|\mbf{X}=\mbf{x})$ has the potential for numerical instability. This can be alleviated by performing the computation as shown below. This requires computing the log joint directly, as in part (a), and using a function called "log-sum-exp" to perform the computation of the second term. Explain what the log-sum-exp function is and how it helps to avoid numerical underflow and overflow.
+
+$$P_{\theta}(Z=z|\mbf{X}=\mbf{x}) = \exp\left(\log P_{\theta}(\mbf{X}=\mbf{x},Z=z) - \log\sum_{z'=1}^K \exp(\log P_{\theta}(\mbf{X}=\mbf{x},Z=z'))\right)$$
+
+\newpart{3} In your report, provide a vectorized PyTorch implementation of $P_{\theta}(Z=z|\mbf{X}=\mbf{x})$ that uses the PyTorch implementation of the log-sum-exp function. Your implementation should call you function from part (b) when computing the log joint. Use your implementation to compute and report $P_{\theta}(Z=z|\mbf{X}=\mbf{x})$ for each value of $z$ using the data case X[5,:]. Report the results in scientific notation using four decimal places.\\
+
+\newpart{5} Suppose that we only observe the left half of an MNIST digit image and we want to use the mixture model to predict the right half. Let
+$\mbf{r}$ represent the set of indices corresponding to the pixels in the right half of the image and $\mbf{l}$ represent the indices of the pixels in the left half of the image. We will denote the pixel values in the right half of the image by $\mbf{x_r}$, and the pixel values in the left half of the image by $\mbf{x_l}$. The distribution of interest is $P_{\theta}(\mbf{X}_r=\mbf{x}_r|\mbf{X}_l=\mbf{x}_l)$. We can use the mean of this distribution as a prediction $\hat{\mbf{x}}_{\mbf{r}}$ for the unknown pixel values in the right half of the image.\\
+
+Let $\mu_{z\mbf{l}}$ and $\mu_{z\mbf{r}}$ be the left and right portions of the mean vector for cluster $z$. Let $\Sigma_{z\mbf{ll}}$ refer to the covariance among the pixels in the left half of the image for cluster $z$ and $\Sigma_{z\mbf{lr}}$ denote the covariance between the pixels in the left half and the pixels in the right half of the image for cluster $z$. The mean of the distribution over the right half of the image given the left half can be computed using the formula below. Derive this formula using marginalization, conditioning and expectation results for Gaussian distributions starting from the mixture model joint distribution defined above.
+
+$$\hat{\mbf{x}}_{\mbf{r}} = \sum_{z=1}^K P_{\theta}(Z=z|\mbf{X}_l=\mbf{x}_l)\left(\mu_{z\mbf{r}} + (\mbf{x}_\mbf{l}-\mu_{z\mbf{l}})(\Sigma_{z\mbf{ll}})^{-1}\Sigma_{z\mbf{lr}}\right)$$
+
+\newpart{5} Provide a PyTorch implementation for the computation of $\hat{\mbf{x}}_{\mbf{r}}$ based on the formula given above. Your implementation should call your function from part (d) to compute $P_{\theta}(Z=z|\mbf{X}=\mbf{x})$. Using this implementation, compute predictions for the right half of each of the 10 data cases included in the data set given the pixel values of the left half. As your answer to this question, provide a listing of your code and images showing the observed left half of each image combined with the predicted right half. Example code is included for visualizing digit images.\\
+\end{problem}
+
+
+\textbf{Part 2: Model Design and  Experimentation (Due Friday, Dec 1st at 11:59pm)} In this part of the assignment you will implement and experiment with autoencoder-like models for image colorization. Given a grayscale image, the task is to predict a correctly colorized version of the image. We will be using a data set derived from CIFAR10. This data set consists of 32x32 pixel color images of objects from 10 different classes. While digital images are most often represented using RGB pixel values, the image colorization task is typically performed in the LAB color space. In the LAB color space, an image is represented using a luminosity channel (L), a channel encoding red/green color information (A), and a channel representing yellow/blue color information (B). The reason is that a grayscale image corresponds to the L channel in the LAB color space, so the problem simplifies to predicting the A and B channels given the L channel. The known L channel can then be re-combined with the predicted A and B channels to produce a standard RGB image. We will use a version of the color space where L, A and B take values in [-1,1].\\
+
+\begin{problem}{25} To begin, you will implement a basic linear autoencoder-like model for this problem that predicts the A and B channels given the L channel as input. In this problem, the input space has $D=32\times 32=1024$ dimensions and the output space has $D'=2D=2048$ dimensions. A linear autoencoder-like model is defined using a linear encoding function $f(\mbf{x})$ that maps from the $D$-dimensional input space to a $K$-dimensional code space, and a linear decoding function $g(\mbf{h})$ that maps from the $K$-dimensional code space to the $D'$-dimensional output space. \\
+
+Your model implementations for this question should be included in linear.py. Your implementation must be wrapped in a class called linear and should include the functions g, f, loss, fit, predict, save, and load along with any other functions that you need. The fit, predict, save and load functions must follow the API as described below.  All functions should be vectorized. Your implementation must function correctly on Gradescope when the constructor is called with no arguments, load is called with no arguments, and then the model is used to make predictions by calling the predict function. Your experiments should be included in linear\_experiments.py. Upload the files linear.py, linear\_experiments.py and linear.pt to Gradescope.
+    
+\begin{itemize}
+\item \verb|fit|: Takes Torch tensors $\mbf{L}$ of shape $(N,D)$ and $\mbf{AB}$ of shape $(N,2D)$ as input. Learns the model by minimizing a loss between $g(f(\mbf{L}))$ and $\mbf{AB}$. 
+
+\item \verb|predict|: Takes a Torch tensor $\mbf{L}$ of shape $(N,D)$ as input. Predicts a Torch  tensor $\mbf{AB}$ of shape $(N,2D)$ as output using $g(f(\mbf{L}))$
+
+\item \verb|save|: When called, this function should save your learned model to the file "linear.pt" in the current directory. 
+
+\item \verb|load|: When called, this function should load your learned model from the file "linear.pt" stored in the current directory. 
+
+\end{itemize}  
+
+\newpart{5} To learn the model you need to select a loss function to use. Give a mathematical expression for your choice of loss function and explain why you selected it.\\
+
+\newpart{5} Describe your approach to learning the model. What optimizer did you select? How did you determine a learning rate to use? How did you determine how long to run learning for?\\
+
+\newpart{5} Include in your report a listing of the functions f, g, loss, fit and predict. For full points, these functions must be fully vectorized.\\
+
+\newpart{5} Learn the model with $K=100$. Using the learned model, make predictions for each of the first 10 training instance and the first 10 test instances. Convert the predictions back to RGB images and display the true and predicted training images and the true and predicted test images in your report (see the example in linear\_experiments.py.\\
+
+\newpart{5} Your trained model will be applied to additional test instances on Gradescope to assess its predictive performance. Predictive performance will be assessed by converting predictions to RGB images and computing the mean squared error between true and predicted RGB images. Your code must run on Gradescope.\\
+
+\end{problem}
+
+\begin{problem}{25} In this question, you will implement a non-linear autoencoder-like model for the CIFAR10 image colorization problem. A non-linear autoencoder-like model is defined using a non-linear encoding function $f(\mbf{x})$ that maps from the $D$-dimensional input space to a $K$-dimensional code space, and a non-linear linear decoding function $g(\mbf{h})$ that maps from the $K$-dimensional code space to the $D'$-dimensional output space. Your model implementations for this question should be included in nn.py. Your implementation must be wrapped in a class called nn and should include the functions g, f, loss, fit, predict, save, and load along with any other functions that you need. The  predict, save and load functions must follow the API as described below.  All functions should be vectorized. Your implementation must function correctly on Gradescope when the constructor is called with no arguments, load is called with no arguments, and then the model is used to make predictions by calling the predict function. Your experiments should be included in nn\_experiments.py. Upload the files nn.py, nn\_experiments.py and nn.pt to Gradescope.
+    
+\begin{itemize}
+
+\item \verb|predict|: Takes a Torch tensor $\mbf{L}$ of shape $(N,D)$ as input. Predicts a Torch  tensor $\mbf{AB}$ of shape $(N,2D)$ as output using $g(f(\mbf{L}))$
+
+\item \verb|save|: When called, this function should save your learned model to the file "nn.pt" in the current directory. 
+
+\item \verb|load|: When called, this function should load your learned model from the file "nn.pt" stored in the current directory. 
+
+\end{itemize}  
+
+\newpart{5} Provide a mathematical description of your selected encoder and decoder functions along with an architecture diagram for your model. Discuss your model design choices.\\
+
+\newpart{5} Include in your report a listing of the functions f, g, loss, fit and predict. Your functions must be fully vectorized to recieve full credit. If you made different choices for the loss function or for aspects of your approach to learning the model relative to the previous question, explain the differences.\\
+
+\newpart{5} Explain the primary hyper-parameters for your model and discuss your approach to setting their values. Indicate the optimal values of the hyper-parameters you found and provide at least one graph supporting your hyper-parameter choices.\\
+
+\newpart{5} Using the model with optimal hyper-parameters, make predictions for each of the first 10 training instance and the first 10 test instances. Convert the predictions back to RGB images and display the true and predicted training images and the true and predicted test images in your report.\\
+
+\newpart{5} Your trained model will be applied to additional test instances on Gradescope to assess its predictive performance. Predictive performance will be assessed by converting predictions to RGB images and computing the mean squared error between true and predicted RGB images. 
+
+\end{problem}
+
+
+\showpoints
+\end{document}
